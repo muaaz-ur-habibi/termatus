@@ -1,0 +1,443 @@
+import cpuinfo.cpuinfo
+from rich import print as po
+from rich.live import Live
+from rich.console import Console, Group
+from rich.layout import Layout
+from rich.panel import Panel
+from rich.tree import Tree
+from rich.table import Table
+from rich import box
+
+from pyfiglet import figlet_format
+
+# to plot terminal charts
+import asciichartpy as acp
+
+import random
+
+import arts
+
+import requests as req
+
+import datetime as dt
+
+import psutil
+import platform
+import cpuinfo
+
+
+# socials: 
+# instagram = https://www.instagram.com/muaaz_ur_habibi?igsh=YzU3YnlxbzN5ZG9k
+# github = https://github.com/thegigacoder123
+
+# some custom functions used throughout the app
+def truncate_list(list_:list,
+                  length:int):
+    """
+    Returns list_ with length = length
+    """
+
+    if len(list_) > length:
+        list_ = list_[1:]
+        return list_
+    else:
+        return list_
+    
+def greater_than(val_1:int, val_2:int):
+    """function that returns val_1 if it is greater than val_2, else returns val_2"""
+    if val_1 > val_2:
+        return val_1
+    else:
+        return val_2
+
+def random_arter():
+    art_list = [v for v in dir(arts) if not v.startswith("__")]
+
+    return random.choice(art_list)
+
+
+
+# main backend function that gets all the required info
+# will iterate over this continously, refreshing the system informations
+def basic_info():
+    # basic system info
+    info_dict = {}
+    info_dict["arch"] = platform.architecture()
+    info_dict["net_name"] = platform.node()
+    info_dict["os"] = platform.platform()
+    info_dict["system"] = platform.system()
+    info_dict["boot_time"] = dt.datetime.fromtimestamp(psutil.boot_time()).strftime("%d/%m/%Y, %H:%M:%S")
+    info_dict["users"] = [i.name for i in psutil.users()] if [i.name for i in psutil.users()] != [] else "_______"
+
+    return info_dict
+
+def cpu_info():
+    # CPU info
+    cpu = cpuinfo.get_cpu_info()
+    info_dict = {}
+    info_dict["cpu"] = {}
+    info_dict["cpu"]["name"] = cpu["brand_raw"]
+    info_dict["cpu"]["arch"] = cpu["arch"]
+    info_dict["cpu"]["clock_speed"] = cpu["hz_actual_friendly"]
+    info_dict["cpu"]["stats"] = {}
+    info_dict["cpu"]["stats"]["cores"] = psutil.cpu_count()
+    info_dict["cpu"]["stats"]["percent_used"] = psutil.cpu_percent()
+    info_dict["cpu"]["stats"]["times"] = psutil.cpu_times()
+    info_dict["cpu"]["stats"]["speeds"] = [i for i in psutil.cpu_freq()][0]
+
+
+    return info_dict
+
+def ram_info():
+    # RAM info
+    info_dict = {}
+    info_dict["ram"] = {}
+    ram = psutil.virtual_memory()
+    info_dict["ram"]["total"] = round(ram.total / 1024 / 1024 / 1024, ndigits=2)
+    info_dict["ram"]["available"] = round(ram.available / 1024 / 1024 / 1024, ndigits=3)
+    info_dict["ram"]["used"] = round(ram.used / 1024 / 1024 / 1024, ndigits=3)
+    info_dict["ram"]["percentage_used"] = ram.percent
+
+    return info_dict
+
+def disks_info():
+    # Disks info
+    info_dict = {}
+    info_dict["disks"] = {}
+    # base for disks
+    disks = psutil.disk_partitions()
+    info_dict["disks"]["names"] = [i.device for i in disks]
+    info_dict["disks"]["mount_points"] = [i.mountpoint for i in disks]
+    info_dict["disks"]["options"] = [i.opts for i in disks]
+    # usage
+    base_disk_info = [psutil.disk_usage(i) for i in info_dict["disks"]["names"]]
+    info_dict["disks"]["usage"] = {}
+    info_dict["disks"]["usage"]["total_gb"] = [i.total/1024/1024/1024 for i in base_disk_info]
+    info_dict["disks"]["usage"]["available_gb"] = [i.free/1024/1024/1024 for i in base_disk_info]
+    info_dict["disks"]["usage"]["used_gb"] = [i.used/1024/1024/1024 for i in base_disk_info]
+    info_dict["disks"]["usage"]["percentage_used"] = [i.percent for i in base_disk_info]
+
+    return info_dict
+
+def get_isp():
+    try:
+        isp_info = req.get("https://ipinfo.io").content.decode()
+        isp_info_g['net_info'] = isp_info
+    except ConnectionError:
+        {}
+
+isp_info_g = {'net_info': {}}
+
+def net_info():
+    # Internet info
+    info_dict = {}
+    info_dict["net"] = {}
+    # base for net
+    network = psutil.net_io_counters()
+    # for bytes
+    info_dict["net"]["bytes_info"] = {}
+    info_dict["net"]["bytes_info"]["sent"] = network.bytes_sent/1024/1024
+    info_dict["net"]["bytes_info"]["recieved"] = network.bytes_recv/1024/1024
+    # for packets
+    info_dict["net"]["packets_info"] = {}
+    info_dict["net"]["packets_info"]["sent"] = network.packets_sent
+    info_dict["net"]["packets_info"]["recieved"] = network.packets_recv
+    # for errors and loss
+    info_dict["net"]["errors"] = {}
+    info_dict["net"]["loss"] = {}
+
+    info_dict["net"]["errors"]["in"] = network.errin
+    info_dict["net"]["errors"]["out"] = network.errout
+    info_dict["net"]["loss"]["in"] = network.dropin
+    info_dict["net"]["loss"]["out"] = network.dropout
+
+    info_dict["net"]["net_info"] = isp_info_g["net_info"]
+
+    return info_dict
+
+def processes_info():
+    # Processes info
+    info_dict = {}
+    info_dict["processes"] = {}
+    # ids
+    ids = psutil.pids()
+    processes = [psutil.Process(i) for i in ids]
+    info_dict["processes"]["ids"] = ids
+    info_dict["processes"]["names"] = [i.name() for i in processes]
+    info_dict["processes"]["command"] = [" ".join(x for x in i.cmdline()) for i in processes]
+
+    return info_dict
+
+
+def base(information_dictionary:dict,
+         net_buff_info:list,
+         disk_info:list,
+         memory_ram_info:list,
+         cpu_buff_info:list,
+         isp_info_d:dict,
+         total_ram:float):
+    global net_p_in_max
+
+    cons = Console()
+    lay = Layout()
+    # split into two: the accessories a.k.a the headings, pics and creds area and the main area i.e are that will show main info
+    lay.split_column(
+        Layout(Panel("acessories-display"), name="acessories-display"),
+        Layout(Panel("main-display"), name="main-display")
+    )
+    # set size
+    lay["acessories-display"].size = 24
+
+    # split again for a heading space and a space for the pic
+    lay["acessories-display"].split_row(
+        # curr font = big_money-se
+        Layout(name="heading-space"),
+        Layout(Panel(arts.art_11),
+               name="pic")
+    )
+    lay["acessories-display"]["pic"].size = 70
+
+    # split heading space since its too large just for heading so some basic pc info can be shown there
+    lay["acessories-display"]["heading-space"].split_column(
+        Layout(name="heading"),
+        Layout(name="pc-basic-info")
+    )
+
+    # set size to just fit the heading
+    lay["acessories-display"]["heading"].size = 10
+
+    # split it again for a credits section and to size the heading space to be just perfect
+    # credits tree
+    credits_info = Tree("[bold white on blue]\nCreated by:[/bold white on blue] Muaaz Khan\n\n[red on white]Socials[/red on white]")
+    credits_info.add("[link=https://www.instagram.com/muaaz_ur_habibi?igsh=YzU3YnlxbzN5ZG9k]Instagram")
+    credits_info.add("[link=https://github.com/thegigacoder123]Github")
+
+    lay["acessories-display"]["heading"].split_row(
+        Layout(Panel(figlet_format("Termatus",
+                             font="colossal",
+                             width=110),
+                             style="white on black", border_style="black"), name="actual-heading"),
+        Layout(
+            renderable=Panel(credits_info,
+                                border_style="blue bold",
+                                box=box.SQUARE,
+                                title="[dark_green]|Creator Info|",
+                                title_align="left"),
+                                name="credits")
+    )
+
+    lay['acessories-display']['heading']['actual-heading'].size = 80
+    #-------------------------------------ALL THIS WAS FOR THE HEADING SPACE--------------------------------------
+
+    #----------NOW START ADDING THE MAIN INFO------------------
+    # adding basic pc info
+    basic_pc_info = f"""
+[bold dark_green]Architecture[/bold dark_green]: {information_dictionary['arch']}
+[bold dark_green]Network Name[/bold dark_green]: {information_dictionary['net_name']}
+[bold dark_green]Operating System[/bold dark_green]: {information_dictionary['os']}
+[bold dark_green]System[/bold dark_green]: {information_dictionary['system']}
+[bold dark_green]Boot Time[/bold dark_green]: {information_dictionary['boot_time']}
+[bold dark_green]Users[/bold dark_green]: {information_dictionary['users']}"""
+
+    lay['acessories-display']['heading-space']['pc-basic-info'].update(Panel(basic_pc_info,
+                                                                             box=box.SQUARE,
+                                                                             border_style="light_green",
+                                                                             title="[red]|Basic PC Information|",
+                                                                             title_align="left"))
+    # splitting main display section to 3 parts: CPU, Network and Memory
+    lay['main-display'].split_row(
+        Layout(name="cpu-display"),
+        Layout(name="net-display"),
+        Layout(name="mem-display")
+    )
+
+
+    # adding network info
+    # dividiing net-display into two secs: graphs and texts
+    lay['main-display']['net-display'].split_column(
+        Layout(name="textual-data"),
+        Layout(name="graphical-data")
+    )
+
+    # ignore this. it just cleans the net info
+    backslash_replace = "\n  "
+    quote_replace = '"'
+    cleaned_net_info = str(isp_info_d['net_info']).replace('{', '').replace('}', '').replace(backslash_replace, '').replace(quote_replace, '').split(',')
+
+
+    lay["main-display"]["net-display"]["textual-data"].update(
+        Panel(
+            border_style="deep_pink3",
+            box=box.SQUARE,
+            title="[orange bold]|Internet|", title_align="left",
+            renderable=Group(
+                #f"[bold underline]General Info:[/bold underline]",
+                Panel(
+                    f"\n{cleaned_net_info[0]}\narea: {cleaned_net_info[1].split(': ')[1]}, {cleaned_net_info[2].split(': ')[1]}, {cleaned_net_info[3].split(': ')[1]}\nISP: {cleaned_net_info[6].split(': ')[1]}",
+                    border_style="black", title="[purple bold underline]General Info", title_align="left"),
+                Panel(
+                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=3)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=3)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)",
+                    border_style="black", title="[purple bold underline]Statistical Data", title_align="left"
+                )
+            )
+        )
+    )
+
+
+    lay["main-display"]["net-display"]["graphical-data"].split_row(
+        Layout(name="bytes-graph"),
+        Layout(name="packets-graph")
+    )
+
+    lay["main-display"]["net-display"]["graphical-data"].size = 16
+
+    lay["main-display"]["net-display"]["graphical-data"]["bytes-graph"].update(
+        Group(
+            Panel(
+                acp.plot(net_buff_info[0], {"min": 0, "height": 5}),
+                title="Bytes(mb): In", title_align="left", style="blue on black", border_style="deep_pink3"
+            ),
+            Panel(
+                acp.plot(net_buff_info[1], {"min": 0, "height": 5}),
+                title="Bytes(mb): Out", title_align="left", style="red on black", border_style="deep_pink3"
+            )
+        )
+    )
+
+    lay["main-display"]["net-display"]["graphical-data"]["packets-graph"].update(
+        Group(
+            Panel(
+                acp.plot(net_buff_info[2], {"min": 0, "height": 5}),
+                title="Packets: In", title_align="left", style="blue on black", border_style="deep_pink3"
+            ),
+            Panel(
+                acp.plot(net_buff_info[3], {"min": 0, "height": 5}),
+                title="Packets: Out", title_align="left", style="red on black", border_style="deep_pink3"
+            )
+        )
+    )
+
+
+    # adding memory/ram info
+    # cutting the display into two areas: graphs and text
+    lay["main-display"]["mem-display"].split_column(
+        Layout(name="textual-data"),
+        Layout(name="graphical-data")
+    )
+
+    lay["main-display"]["mem-display"]["graphical-data"].size = 16
+    # displaying the graphs
+    lay["main-display"]["mem-display"]["graphical-data"].update(
+        Group(
+            Panel(
+                acp.plot(memory_ram_info[0], {"min": 0, "height": 5, "max": total_ram}),
+                title="RAM: Available(gb)"
+            ),
+            Panel(
+                acp.plot(memory_ram_info[1], {"min": 0, "height": 5, "max": memory_ram_info[1][-1]+0.4}),
+                title="RAM: Used(gb)"
+            )
+        )
+    )
+
+
+    # adding cpu info
+    # cutting layout to two: graphical and textual
+
+    lay["main-display"]["cpu-display"].split_column(
+        Layout(name="textual-data"),
+        Layout(name="graphical-data")
+    )
+
+    lay["main-display"]["cpu-display"]["graphical-data"].size = 13
+
+    lay["main-display"]["cpu-display"]["graphical-data"].update(
+        Panel(
+            acp.plot(cpu_buff_info, {"min": 0, "height": 10, "max": 100}),
+            border_style="dark_orange", style="yellow", title="[orange_red1]CPU Utilisation (%)", title_align="left"
+        )
+    )
+
+
+    return lay
+
+
+get_isp()
+with Live(renderable=base(information_dictionary=basic_info(),
+                          net_buff_info=[[0], [0], [0], [0]],
+                          disk_info=[[0], [0], [0], [0]],
+                          memory_ram_info=[[0], [0], [0], [0]],
+                          cpu_buff_info=[0],
+                          isp_info_d=isp_info_g,
+                          total_ram=float(0.0)),
+                          refresh_per_second=100,
+                          screen=True) as l:
+    try:
+        
+        # buffers for the graph data, to help graph be a series and not a point
+        net_b_in_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_b_out_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_p_in_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_p_out_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        ram_totl_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ram_avai_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ram_used_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ram_perc_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        total_ram = ram_info()["ram"]['total']
+
+        disk_totl_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        disk_avai_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        disk_used_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        disk_perc_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        cpu_perc_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+
+        while True:
+
+            net_b_in_buffer.append(net_info()["net"]["bytes_info"]["recieved"])
+            net_b_out_buffer.append(net_info()["net"]["bytes_info"]["sent"])
+            net_p_in_buffer.append(net_info()["net"]["packets_info"]["recieved"])
+            net_p_out_buffer.append(net_info()["net"]["packets_info"]["sent"])
+
+            ram_totl_buffer.append(ram_info()["ram"]["total"])
+            ram_avai_buffer.append(ram_info()["ram"]["available"])
+            ram_used_buffer.append(ram_info()["ram"]["used"])
+            ram_perc_buffer.append(ram_info()["ram"]["percentage_used"])
+
+            #disk_totl_buffer.append(disks_info()["disks"]["usage"]["total_gb"])
+            #disk_avai_buffer.append(disks_info()["disks"]["usage"]["available_gb"])
+            #disk_used_buffer.append(disks_info()["disks"]["usage"]["used_gb"])
+            #disk_perc_buffer.append(disks_info()["disks"]["usage"]["percentage_used"])
+
+            cpu_perc_buffer.append(cpu_info()["cpu"]["stats"]["percent_used"])
+            
+            net_b_in_buffer = truncate_list(net_b_in_buffer, 20)
+            net_b_out_buffer = truncate_list(net_b_out_buffer, 20)
+            net_p_in_buffer = truncate_list(net_p_in_buffer, 20)
+            net_p_out_buffer = truncate_list(net_p_out_buffer, 20)
+
+            ram_avai_buffer = truncate_list(ram_avai_buffer, 40)
+            ram_perc_buffer = truncate_list(ram_perc_buffer, 20)
+            ram_used_buffer = truncate_list(ram_used_buffer, 40)
+            ram_totl_buffer = truncate_list(ram_totl_buffer, 20)
+
+            #disk_avai_buffer = truncate_list(disk_avai_buffer, 20)
+            #disk_perc_buffer = truncate_list(disk_perc_buffer, 20)
+            #disk_totl_buffer = truncate_list(disk_totl_buffer, 20)
+            #disk_used_buffer = truncate_list(disk_used_buffer, 20)
+
+            cpu_perc_buffer = truncate_list(cpu_perc_buffer, 40)
+
+            b = [net_b_in_buffer, net_b_out_buffer, net_p_in_buffer, net_p_out_buffer]
+            
+            l.update(base(basic_info(),
+                        net_buff_info=[net_b_in_buffer, net_b_out_buffer, net_p_in_buffer, net_p_out_buffer, isp_info_g],
+                        disk_info=[disk_avai_buffer, disk_used_buffer, disk_perc_buffer, disk_totl_buffer],
+                        memory_ram_info=[ram_avai_buffer, ram_used_buffer, ram_perc_buffer, ram_totl_buffer],
+                        cpu_buff_info=cpu_perc_buffer,
+                        isp_info_d=isp_info_g,
+                        total_ram=float(total_ram)))
+    except KeyboardInterrupt:
+        quit()
