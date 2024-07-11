@@ -1,4 +1,3 @@
-import cpuinfo.cpuinfo
 from rich import print as po
 from rich.live import Live
 from rich.console import Console, Group
@@ -119,6 +118,7 @@ def disks_info():
 
     return info_dict
 
+# runs a scrape to a site that returns your isp and other very personal info
 def get_isp():
     try:
         isp_info = req.get("https://ipinfo.io").content.decode()
@@ -136,8 +136,8 @@ def net_info():
     network = psutil.net_io_counters()
     # for bytes
     info_dict["net"]["bytes_info"] = {}
-    info_dict["net"]["bytes_info"]["sent"] = network.bytes_sent/1024/1024
-    info_dict["net"]["bytes_info"]["recieved"] = network.bytes_recv/1024/1024
+    info_dict["net"]["bytes_info"]["sent"] = network.bytes_sent/1024/1024/1024
+    info_dict["net"]["bytes_info"]["recieved"] = network.bytes_recv/1024/1024/1024
     # for packets
     info_dict["net"]["packets_info"] = {}
     info_dict["net"]["packets_info"]["sent"] = network.packets_sent
@@ -178,7 +178,6 @@ def base(information_dictionary:dict,
          total_ram:float):
     global net_p_in_max
 
-    cons = Console()
     lay = Layout()
     # split into two: the accessories a.k.a the headings, pics and creds area and the main area i.e are that will show main info
     lay.split_column(
@@ -264,7 +263,7 @@ def base(information_dictionary:dict,
     quote_replace = '"'
     cleaned_net_info = str(isp_info_d['net_info']).replace('{', '').replace('}', '').replace(backslash_replace, '').replace(quote_replace, '').split(',')
 
-
+    # displaying the texts
     lay["main-display"]["net-display"]["textual-data"].update(
         Panel(
             border_style="deep_pink3",
@@ -276,14 +275,14 @@ def base(information_dictionary:dict,
                     f"\n{cleaned_net_info[0]}\narea: {cleaned_net_info[1].split(': ')[1]}, {cleaned_net_info[2].split(': ')[1]}, {cleaned_net_info[3].split(': ')[1]}\nISP: {cleaned_net_info[6].split(': ')[1]}",
                     border_style="black", title="[purple bold underline]General Info", title_align="left"),
                 Panel(
-                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=3)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=3)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (b/s)\n\nPacket loss (In): {round(float(net_buff_info[4][-1]), ndigits=3)}\nPacket loss (Out): {round(float(net_buff_info[5][-1]), ndigits=3)}",
+                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=3)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=3)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (b/s)\n\nPacket loss (In):     {round(float(net_buff_info[4][-1]), ndigits=3)} (b)\nPacket loss (Out):    {round(float(net_buff_info[5][-1]), ndigits=3)} (b)",
                     border_style="black", title="[purple bold underline]Statistical Data", title_align="left"
                 )
             )
         )
     )
 
-
+    # displaying the graphs
     lay["main-display"]["net-display"]["graphical-data"].split_row(
         Layout(name="bytes-graph"),
         Layout(name="packets-graph")
@@ -294,11 +293,11 @@ def base(information_dictionary:dict,
     lay["main-display"]["net-display"]["graphical-data"]["bytes-graph"].update(
         Group(
             Panel(
-                acp.plot(net_buff_info[0], {"min": 0, "height": 5}),
+                acp.plot([round(i, ndigits=3) for i in net_buff_info[0]], {"min": 0, "height": 5}),
                 title="Bytes(mb): In", title_align="left", style="blue on black", border_style="deep_pink3"
             ),
             Panel(
-                acp.plot(net_buff_info[1], {"min": 0, "height": 5}),
+                acp.plot([round(i, ndigits=3) for i in net_buff_info[1]], {"min": 0, "height": 5}),
                 title="Bytes(mb): Out", title_align="left", style="red on black", border_style="deep_pink3"
             )
         )
@@ -326,16 +325,19 @@ def base(information_dictionary:dict,
     )
 
     lay["main-display"]["mem-display"]["graphical-data"].size = 16
+    # displaying the texts
+    
+
     # displaying the graphs
     lay["main-display"]["mem-display"]["graphical-data"].update(
         Group(
             Panel(
                 acp.plot(memory_ram_info[0], {"min": 0, "height": 5, "max": total_ram}),
-                title="RAM: Available(gb)"
+                title="[cyan]RAM: Available(gb)", title_align="left", border_style="navy_blue"
             ),
             Panel(
                 acp.plot(memory_ram_info[1], {"min": 0, "height": 5, "max": memory_ram_info[1][-1]+0.4}),
-                title="RAM: Used(gb)"
+                title="[cyan]RAM: Used(gb)", title_align="left", border_style="navy_blue"
             )
         )
     )
@@ -443,7 +445,7 @@ with Live(renderable=base(information_dictionary=basic_info(),
             #disk_totl_buffer = truncate_list(disk_totl_buffer, 20)
             #disk_used_buffer = truncate_list(disk_used_buffer, 20)
 
-            cpu_perc_buffer = truncate_list(cpu_perc_buffer, 40)
+            cpu_perc_buffer = truncate_list(cpu_perc_buffer, 50)
 
             
             l.update(base(basic_info(),
