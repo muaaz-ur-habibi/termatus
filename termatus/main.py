@@ -124,7 +124,7 @@ def get_isp():
         isp_info = req.get("https://ipinfo.io").content.decode()
         isp_info_g['net_info'] = isp_info
     except ConnectionError:
-        {}
+        isp_info_g['net_info'] = {}
 
 isp_info_g = {'net_info': {}}
 
@@ -276,7 +276,7 @@ def base(information_dictionary:dict,
                     f"\n{cleaned_net_info[0]}\narea: {cleaned_net_info[1].split(': ')[1]}, {cleaned_net_info[2].split(': ')[1]}, {cleaned_net_info[3].split(': ')[1]}\nISP: {cleaned_net_info[6].split(': ')[1]}",
                     border_style="black", title="[purple bold underline]General Info", title_align="left"),
                 Panel(
-                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=3)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=3)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)",
+                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=3)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=3)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (b/s)\n\nPacket loss (In): {round(float(net_buff_info[4][-1]), ndigits=3)}\nPacket loss (Out): {round(float(net_buff_info[5][-1]), ndigits=3)}",
                     border_style="black", title="[purple bold underline]Statistical Data", title_align="left"
                 )
             )
@@ -364,7 +364,7 @@ def base(information_dictionary:dict,
 
 get_isp()
 with Live(renderable=base(information_dictionary=basic_info(),
-                          net_buff_info=[[0], [0], [0], [0]],
+                          net_buff_info=[[0], [0], [0], [0], [0], [0]],
                           disk_info=[[0], [0], [0], [0]],
                           memory_ram_info=[[0], [0], [0], [0]],
                           cpu_buff_info=[0],
@@ -379,6 +379,10 @@ with Live(renderable=base(information_dictionary=basic_info(),
         net_b_out_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         net_p_in_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         net_p_out_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_e_in_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_e_out_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_p_in_loss_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        net_p_out_loss_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         ram_totl_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ram_avai_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -400,6 +404,10 @@ with Live(renderable=base(information_dictionary=basic_info(),
             net_b_out_buffer.append(net_info()["net"]["bytes_info"]["sent"])
             net_p_in_buffer.append(net_info()["net"]["packets_info"]["recieved"])
             net_p_out_buffer.append(net_info()["net"]["packets_info"]["sent"])
+            net_e_in_buffer.append(net_info()["net"]["errors"]["in"])
+            net_e_out_buffer.append(net_info()["net"]["errors"]["out"])
+            net_p_in_loss_buffer.append(net_info()["net"]["loss"]["in"])
+            net_p_out_loss_buffer.append(net_info()["net"]["loss"]["out"])
 
             ram_totl_buffer.append(ram_info()["ram"]["total"])
             ram_avai_buffer.append(ram_info()["ram"]["available"])
@@ -417,6 +425,13 @@ with Live(renderable=base(information_dictionary=basic_info(),
             net_b_out_buffer = truncate_list(net_b_out_buffer, 20)
             net_p_in_buffer = truncate_list(net_p_in_buffer, 20)
             net_p_out_buffer = truncate_list(net_p_out_buffer, 20)
+            # length of these really dont matter, since they arent going 
+            # to be displayed on graphs
+            net_e_in_buffer = truncate_list(net_e_in_buffer, 20)
+            net_e_out_buffer = truncate_list(net_e_out_buffer, 20)
+            net_p_in_loss_buffer = truncate_list(net_p_in_loss_buffer, 20)
+            net_p_out_loss_buffer = truncate_list(net_p_out_loss_buffer, 20)
+
 
             ram_avai_buffer = truncate_list(ram_avai_buffer, 40)
             ram_perc_buffer = truncate_list(ram_perc_buffer, 20)
@@ -430,10 +445,9 @@ with Live(renderable=base(information_dictionary=basic_info(),
 
             cpu_perc_buffer = truncate_list(cpu_perc_buffer, 40)
 
-            b = [net_b_in_buffer, net_b_out_buffer, net_p_in_buffer, net_p_out_buffer]
             
             l.update(base(basic_info(),
-                        net_buff_info=[net_b_in_buffer, net_b_out_buffer, net_p_in_buffer, net_p_out_buffer, isp_info_g],
+                        net_buff_info=[net_b_in_buffer, net_b_out_buffer, net_p_in_buffer, net_p_out_buffer, net_e_in_buffer, net_e_out_buffer, net_p_in_loss_buffer, net_p_out_loss_buffer],
                         disk_info=[disk_avai_buffer, disk_used_buffer, disk_perc_buffer, disk_totl_buffer],
                         memory_ram_info=[ram_avai_buffer, ram_used_buffer, ram_perc_buffer, ram_totl_buffer],
                         cpu_buff_info=cpu_perc_buffer,
