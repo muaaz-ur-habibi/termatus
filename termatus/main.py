@@ -1,10 +1,11 @@
 from rich import print as po
 from rich.live import Live
-from rich.console import Console, Group
+from rich.console import Group
 from rich.layout import Layout
 from rich.panel import Panel
 from rich.tree import Tree
 from rich.table import Table
+from rich.align import Align
 from rich import box
 
 from pyfiglet import figlet_format
@@ -81,8 +82,8 @@ def cpu_info():
     info_dict["cpu"]["stats"] = {}
     info_dict["cpu"]["stats"]["cores"] = psutil.cpu_count()
     info_dict["cpu"]["stats"]["percent_used"] = psutil.cpu_percent()
-    info_dict["cpu"]["stats"]["times"] = psutil.cpu_times()
-    info_dict["cpu"]["stats"]["speeds"] = [i for i in psutil.cpu_freq()][0]
+    info_dict["cpu"]["stats"]["times"] = [i[0] for i in psutil.cpu_times(percpu=True)]
+    info_dict["cpu"]["stats"]["speeds"] = [i[0] for i in psutil.cpu_freq(percpu=True)]
 
 
     return info_dict
@@ -175,6 +176,8 @@ def base(information_dictionary:dict,
          memory_ram_info:list,
          cpu_buff_info:list,
          isp_info_d:dict,
+         textual_cpu_info:list,
+         textual_proc_info:list,
          total_ram:float):
     global net_p_in_max
 
@@ -191,8 +194,8 @@ def base(information_dictionary:dict,
     lay["acessories-display"].split_row(
         # curr font = big_money-se
         Layout(name="heading-space"),
-        Layout(Panel(arts.art_11),
-               name="pic")
+        Layout(
+            Align.center(arts.art_8, vertical="middle"), name="pic")
     )
     lay["acessories-display"]["pic"].size = 70
 
@@ -212,7 +215,7 @@ def base(information_dictionary:dict,
     credits_info.add("[link=https://github.com/thegigacoder123]Github")
 
     lay["acessories-display"]["heading"].split_row(
-        Layout(Panel(figlet_format("Termatus",
+        Layout(Panel(figlet_format("Ter ma tus",
                              font="colossal",
                              width=110),
                              style="white on black", border_style="black"), name="actual-heading"),
@@ -275,7 +278,7 @@ def base(information_dictionary:dict,
                     f"\n{cleaned_net_info[0]}\narea: {cleaned_net_info[1].split(': ')[1]}, {cleaned_net_info[2].split(': ')[1]}, {cleaned_net_info[3].split(': ')[1]}\nISP: {cleaned_net_info[6].split(': ')[1]}",
                     border_style="black", title="[purple bold underline]General Info", title_align="left"),
                 Panel(
-                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=3)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=3)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (b/s)\n\nPacket loss (In):     {round(float(net_buff_info[4][-1]), ndigits=3)} (b)\nPacket loss (Out):    {round(float(net_buff_info[5][-1]), ndigits=3)} (b)",
+                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=4)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=4)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (b/s)\n\nPacket loss (In):     {round(float(net_buff_info[4][-1]), ndigits=3)} (b)\nPacket loss (Out):    {round(float(net_buff_info[5][-1]), ndigits=3)} (b)",
                     border_style="black", title="[purple bold underline]Statistical Data", title_align="left"
                 )
             )
@@ -293,12 +296,12 @@ def base(information_dictionary:dict,
     lay["main-display"]["net-display"]["graphical-data"]["bytes-graph"].update(
         Group(
             Panel(
-                acp.plot([round(i, ndigits=3) for i in net_buff_info[0]], {"min": 0, "height": 5}),
-                title="Bytes(mb): In", title_align="left", style="blue on black", border_style="deep_pink3"
+                acp.plot([round(i, ndigits=4) for i in net_buff_info[0]], {"min": 0, "height": 5}),
+                title="Bytes(mb): In", title_align="left", style="blue on black", border_style="deep_pink3", box=box.SQUARE
             ),
             Panel(
-                acp.plot([round(i, ndigits=3) for i in net_buff_info[1]], {"min": 0, "height": 5}),
-                title="Bytes(mb): Out", title_align="left", style="red on black", border_style="deep_pink3"
+                acp.plot([round(i, ndigits=4) for i in net_buff_info[1]], {"min": 0, "height": 5}),
+                title="Bytes(mb): Out", title_align="left", style="red on black", border_style="deep_pink3", box=box.SQUARE
             )
         )
     )
@@ -307,11 +310,11 @@ def base(information_dictionary:dict,
         Group(
             Panel(
                 acp.plot(net_buff_info[2], {"min": 0, "height": 5}),
-                title="Packets: In", title_align="left", style="blue on black", border_style="deep_pink3"
+                title="Packets: In", title_align="left", style="blue on black", border_style="deep_pink3", box=box.SQUARE
             ),
             Panel(
                 acp.plot(net_buff_info[3], {"min": 0, "height": 5}),
-                title="Packets: Out", title_align="left", style="red on black", border_style="deep_pink3"
+                title="Packets: Out", title_align="left", style="red on black", border_style="deep_pink3", box=box.SQUARE
             )
         )
     )
@@ -333,11 +336,11 @@ def base(information_dictionary:dict,
         Group(
             Panel(
                 acp.plot(memory_ram_info[0], {"min": 0, "height": 5, "max": total_ram}),
-                title="[cyan]RAM: Available(gb)", title_align="left", border_style="navy_blue"
+                title="[cyan]RAM: Available(gb)", title_align="left", border_style="navy_blue", box=box.SQUARE
             ),
             Panel(
                 acp.plot(memory_ram_info[1], {"min": 0, "height": 5, "max": memory_ram_info[1][-1]+0.4}),
-                title="[cyan]RAM: Used(gb)", title_align="left", border_style="navy_blue"
+                title="[cyan]RAM: Used(gb)", title_align="left", border_style="navy_blue", box=box.SQUARE
             )
         )
     )
@@ -348,7 +351,26 @@ def base(information_dictionary:dict,
 
     lay["main-display"]["cpu-display"].split_column(
         Layout(name="textual-data"),
-        Layout(name="graphical-data")
+        Layout(name="graphical-data"),
+        Layout(name="running-processes")
+    )
+
+    indivisual_cpu_info_table = Table(width=69, box=None)
+    indivisual_cpu_info_table.add_column("[yellow]CPU")
+    indivisual_cpu_info_table.add_column("[yellow]Time")
+    indivisual_cpu_info_table.add_column("[yellow]Speed")
+
+    for i in range(int(textual_cpu_info[2])):
+        indivisual_cpu_info_table.add_row(str(i+1), str(textual_cpu_info[3][i]), str(textual_cpu_info[4][i]))
+
+    lay["main-display"]["cpu-display"]["textual-data"].update(
+        Group(
+            Panel(
+                f'{textual_cpu_info[0]}\nArchitecture: {textual_cpu_info[1]}\nCores: {textual_cpu_info[2]}',
+                border_style="dark_orange", title="[orange_red1]|CPU|", title_align="left", style="yellow", box=box.SQUARE
+            ),
+            indivisual_cpu_info_table
+        )
     )
 
     lay["main-display"]["cpu-display"]["graphical-data"].size = 13
@@ -356,8 +378,20 @@ def base(information_dictionary:dict,
     lay["main-display"]["cpu-display"]["graphical-data"].update(
         Panel(
             acp.plot(cpu_buff_info, {"min": 0, "height": 10, "max": 100}),
-            border_style="dark_orange", style="yellow", title="[orange_red1]CPU Utilisation (%)", title_align="left"
+            border_style="dark_orange", style="yellow", title="[orange_red1]CPU Utilisation (%)", title_align="left", box=box.SQUARE
         )
+    )
+
+    processes_info_table = Table(box=box.MINIMAL)
+    processes_info_table.add_column("[plum2]I.D", overflow="crop")
+    processes_info_table.add_column("[plum2]Name", overflow="crop")
+    processes_info_table.add_column("[plum2]Command", overflow="crop")
+
+    for i in range(len(textual_proc_info[0])):
+        processes_info_table.add_row(f"[hot_pink3]{str(textual_proc_info[0][i])}", f"[hot_pink3]{str(textual_proc_info[1][i])}", f"[hot_pink3]{str(textual_proc_info[2][i])}")
+
+    lay["main-display"]["cpu-display"]["running-processes"].update(
+        processes_info_table
     )
 
 
@@ -371,6 +405,8 @@ with Live(renderable=base(information_dictionary=basic_info(),
                           memory_ram_info=[[0], [0], [0], [0]],
                           cpu_buff_info=[0],
                           isp_info_d=isp_info_g,
+                          textual_cpu_info=["", "", 0, [], []],
+                          textual_proc_info=[[], [], []],
                           total_ram=float(0.0)),
                           refresh_per_second=100,
                           screen=True) as l:
@@ -398,7 +434,6 @@ with Live(renderable=base(information_dictionary=basic_info(),
         disk_perc_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         cpu_perc_buffer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
 
         while True:
 
@@ -421,8 +456,14 @@ with Live(renderable=base(information_dictionary=basic_info(),
             #disk_used_buffer.append(disks_info()["disks"]["usage"]["used_gb"])
             #disk_perc_buffer.append(disks_info()["disks"]["usage"]["percentage_used"])
 
-            cpu_perc_buffer.append(cpu_info()["cpu"]["stats"]["percent_used"])
+            _cpu_info = cpu_info()
+
+            cpu_perc_buffer.append(_cpu_info["cpu"]["stats"]["percent_used"])
+            textual_cpu_data = [_cpu_info["cpu"]["name"], _cpu_info["cpu"]["arch"], _cpu_info["cpu"]["stats"]["cores"], _cpu_info["cpu"]["stats"]["times"], _cpu_info["cpu"]["stats"]["speeds"]]
             
+            _processes_info = processes_info()
+            textual_proc_data = [_processes_info["processes"]["ids"], _processes_info["processes"]["names"], _processes_info["processes"]["command"]]
+
             net_b_in_buffer = truncate_list(net_b_in_buffer, 20)
             net_b_out_buffer = truncate_list(net_b_out_buffer, 20)
             net_p_in_buffer = truncate_list(net_p_in_buffer, 20)
@@ -453,6 +494,8 @@ with Live(renderable=base(information_dictionary=basic_info(),
                         disk_info=[disk_avai_buffer, disk_used_buffer, disk_perc_buffer, disk_totl_buffer],
                         memory_ram_info=[ram_avai_buffer, ram_used_buffer, ram_perc_buffer, ram_totl_buffer],
                         cpu_buff_info=cpu_perc_buffer,
+                        textual_cpu_info=textual_cpu_data,
+                        textual_proc_info=textual_proc_data,
                         isp_info_d=isp_info_g,
                         total_ram=float(total_ram)))
     except KeyboardInterrupt:
