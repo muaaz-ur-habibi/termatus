@@ -26,9 +26,6 @@ import platform
 import cpuinfo
 
 
-# socials: 
-# instagram = https://www.instagram.com/muaaz_ur_habibi?igsh=YzU3YnlxbzN5ZG9k
-# github = https://github.com/thegigacoder123
 
 # some custom functions used throughout the app
 def truncate_list(list_:list,
@@ -296,11 +293,11 @@ def base(information_dictionary:dict,
     lay["main-display"]["net-display"]["graphical-data"]["bytes-graph"].update(
         Group(
             Panel(
-                acp.plot([round(i, ndigits=4) for i in net_buff_info[0]], {"min": 0, "height": 5}),
+                acp.plot([round(i, ndigits=4) for i in net_buff_info[0]], {"min": 0, "height": 5, "max": [round(i, ndigits=4) for i in net_buff_info[0]][-1]+0.5}),
                 title="Bytes(mb): In", title_align="left", style="blue on black", border_style="deep_pink3", box=box.SQUARE
             ),
             Panel(
-                acp.plot([round(i, ndigits=4) for i in net_buff_info[1]], {"min": 0, "height": 5}),
+                acp.plot([round(i, ndigits=4) for i in net_buff_info[1]], {"min": 0, "height": 5, "max": [round(i, ndigits=4) for i in net_buff_info[1]][-1]+0.5}),
                 title="Bytes(mb): Out", title_align="left", style="red on black", border_style="deep_pink3", box=box.SQUARE
             )
         )
