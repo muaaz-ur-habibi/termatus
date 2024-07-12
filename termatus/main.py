@@ -440,7 +440,7 @@ with Live(renderable=base(information_dictionary=basic_info(),
                           textual_mem_info=[[""], [""], [""], [""], [""], [""], [""]],
                           total_ram=float(0.0)),
                           refresh_per_second=100,
-                          screen=False) as l:
+                          screen=True) as l:
     try:
         
         # buffers for the graph data, to help graph be a series and not a point
