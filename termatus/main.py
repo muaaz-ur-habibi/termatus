@@ -26,9 +26,6 @@ import platform
 import cpuinfo
 
 
-# socials: 
-# instagram = https://www.instagram.com/muaaz_ur_habibi?igsh=YzU3YnlxbzN5ZG9k
-# github = https://github.com/thegigacoder123
 
 # some custom functions used throughout the app
 def truncate_list(list_:list,
@@ -83,7 +80,11 @@ def cpu_info():
     info_dict["cpu"]["stats"]["cores"] = psutil.cpu_count()
     info_dict["cpu"]["stats"]["percent_used"] = psutil.cpu_percent()
     info_dict["cpu"]["stats"]["times"] = [i[0] for i in psutil.cpu_times(percpu=True)]
-    info_dict["cpu"]["stats"]["speeds"] = [i[0] for i in psutil.cpu_freq(percpu=True)]
+    # support for windows since psutil doesnt have indivisual cpu speeds on windows
+    if basic_info()["system"] != "Windows":
+        info_dict["cpu"]["stats"]["speeds"] = [i[0] for i in psutil.cpu_freq(percpu=True)]
+    else:
+        info_dict["cpu"]["stats"]["speeds"] = [i for i in psutil.cpu_freq()]
 
 
     return info_dict
@@ -141,8 +142,8 @@ def net_info():
     info_dict["net"]["bytes_info"]["recieved"] = network.bytes_recv/1024/1024/1024
     # for packets
     info_dict["net"]["packets_info"] = {}
-    info_dict["net"]["packets_info"]["sent"] = network.packets_sent
-    info_dict["net"]["packets_info"]["recieved"] = network.packets_recv
+    info_dict["net"]["packets_info"]["sent"] = network.packets_sent/1000000
+    info_dict["net"]["packets_info"]["recieved"] = network.packets_recv/1000000
     # for errors and loss
     info_dict["net"]["errors"] = {}
     info_dict["net"]["loss"] = {}
@@ -161,12 +162,12 @@ def processes_info():
     info_dict = {}
     info_dict["processes"] = {}
     # ids
-    ids = psutil.pids()
-    processes = [psutil.Process(i) for i in ids]
-    info_dict["processes"]["ids"] = ids
-    info_dict["processes"]["names"] = [i.name() for i in processes]
-    info_dict["processes"]["command"] = [" ".join(x for x in i.cmdline()) for i in processes]
-
+    ids = psutil.process_iter(['pid', 'name', 'cmdline'])
+    ids = [i.info for i in ids]
+    info_dict["processes"]["ids"] = [i['pid'] for i in ids]
+    info_dict["processes"]["names"] = [i['name'] for i in ids]
+    info_dict["processes"]["command"] = [i['cmdline'] for i in ids]
+    
     return info_dict
 
 
@@ -278,7 +279,7 @@ def base(information_dictionary:dict,
                     f"\n{cleaned_net_info[0]}\narea: {cleaned_net_info[1].split(': ')[1]}, {cleaned_net_info[2].split(': ')[1]}, {cleaned_net_info[3].split(': ')[1]}\nISP: {cleaned_net_info[6].split(': ')[1]}",
                     border_style="black", title="[purple bold underline]General Info", title_align="left"),
                 Panel(
-                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=4)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (b/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=4)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (b/s)\n\nPacket loss (In):     {round(float(net_buff_info[4][-1]), ndigits=3)} (b)\nPacket loss (Out):    {round(float(net_buff_info[5][-1]), ndigits=3)} (b)",
+                    f"Bytes Recieved:       {round(float(net_buff_info[0][-1]), ndigits=4)} (mb/s)\nPackets Recieved:     {round(float(net_buff_info[2][-1]), ndigits=3)} (Mib/s)\n\nBytes Sent:           {round(float(net_buff_info[1][-1]), ndigits=4)} (mb/s)\nPackets Sent:         {round(float(net_buff_info[3][-1]), ndigits=3)} (Mib/s)\n\nPacket loss (In):     {round(float(net_buff_info[4][-1]), ndigits=3)} (b)\nPacket loss (Out):    {round(float(net_buff_info[5][-1]), ndigits=3)} (b)",
                     border_style="black", title="[purple bold underline]Statistical Data", title_align="left"
                 )
             )
@@ -296,11 +297,11 @@ def base(information_dictionary:dict,
     lay["main-display"]["net-display"]["graphical-data"]["bytes-graph"].update(
         Group(
             Panel(
-                acp.plot([round(i, ndigits=4) for i in net_buff_info[0]], {"min": 0, "height": 5}),
+                acp.plot([round(i, ndigits=4) for i in net_buff_info[0]], {"min": 0, "height": 5, "max": [round(i, ndigits=4) for i in net_buff_info[0]][-1]+0.5}),
                 title="Bytes(mb): In", title_align="left", style="blue on black", border_style="deep_pink3", box=box.SQUARE
             ),
             Panel(
-                acp.plot([round(i, ndigits=4) for i in net_buff_info[1]], {"min": 0, "height": 5}),
+                acp.plot([round(i, ndigits=4) for i in net_buff_info[1]], {"min": 0, "height": 5, "max": [round(i, ndigits=4) for i in net_buff_info[1]][-1]+0.5}),
                 title="Bytes(mb): Out", title_align="left", style="red on black", border_style="deep_pink3", box=box.SQUARE
             )
         )
@@ -329,7 +330,11 @@ def base(information_dictionary:dict,
 
     lay["main-display"]["mem-display"]["graphical-data"].size = 16
     # displaying the texts
-    
+    """lay["main-display"]["mem-display"]["textual-data"].update(
+        Panel(
+
+        )
+    )"""
 
     # displaying the graphs
     lay["main-display"]["mem-display"]["graphical-data"].update(
@@ -361,7 +366,8 @@ def base(information_dictionary:dict,
     indivisual_cpu_info_table.add_column("[yellow]Speed")
 
     for i in range(int(textual_cpu_info[2])):
-        indivisual_cpu_info_table.add_row(str(i+1), str(textual_cpu_info[3][i]), str(textual_cpu_info[4][i]))
+        # support for windows since psutil doesnt have indivisual cpu speeds on windows
+        indivisual_cpu_info_table.add_row(str(i+1), str(round(textual_cpu_info[3][i], ndigits=2)), str(textual_cpu_info[4][0]) if len(textual_cpu_info[4])!=0 else str(textual_cpu_info[4][i]))
 
     lay["main-display"]["cpu-display"]["textual-data"].update(
         Group(
