@@ -167,7 +167,12 @@ def processes_info():
     ids = [i.info for i in ids]
     info_dict["processes"]["ids"] = [i['pid'] for i in ids]
     info_dict["processes"]["names"] = [i['name'] for i in ids]
-    info_dict["processes"]["command"] = [" ".join(x for x in i['cmdline']) for i in ids]
+    info_dict["processes"]["command"] = []
+    for i in ids:
+        if i["cmdline"] != None:
+            info_dict["processes"]["command"].append(" ".join(x for x in i["cmdline"]))
+        else:
+            info_dict["processes"]["command"].append("_")
     
     return info_dict
 
@@ -435,7 +440,7 @@ with Live(renderable=base(information_dictionary=basic_info(),
                           textual_mem_info=[[""], [""], [""], [""], [""], [""], [""]],
                           total_ram=float(0.0)),
                           refresh_per_second=100,
-                          screen=True) as l:
+                          screen=False) as l:
     try:
         
         # buffers for the graph data, to help graph be a series and not a point
