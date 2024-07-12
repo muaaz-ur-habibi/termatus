@@ -94,9 +94,9 @@ def ram_info():
     info_dict = {}
     info_dict["ram"] = {}
     ram = psutil.virtual_memory()
-    info_dict["ram"]["total"] = round(ram.total / 1024 / 1024 / 1024, ndigits=2)
-    info_dict["ram"]["available"] = round(ram.available / 1024 / 1024 / 1024, ndigits=3)
-    info_dict["ram"]["used"] = round(ram.used / 1024 / 1024 / 1024, ndigits=3)
+    info_dict["ram"]["total"] = round(ram.total / 1000000000, ndigits=2)
+    info_dict["ram"]["available"] = round(ram.available / 1000000000, ndigits=3)
+    info_dict["ram"]["used"] = round(ram.used / 1000000000, ndigits=3)
     info_dict["ram"]["percentage_used"] = ram.percent
 
     return info_dict
@@ -126,7 +126,8 @@ def get_isp():
         isp_info = req.get("https://ipinfo.io").content.decode()
         isp_info_g['net_info'] = isp_info
     except ConnectionError:
-        isp_info_g['net_info'] = {}
+        po("connection could not be made, exiting")
+        quit()
 
 isp_info_g = {'net_info': {}}
 
@@ -166,7 +167,7 @@ def processes_info():
     ids = [i.info for i in ids]
     info_dict["processes"]["ids"] = [i['pid'] for i in ids]
     info_dict["processes"]["names"] = [i['name'] for i in ids]
-    info_dict["processes"]["command"] = [i['cmdline'] for i in ids]
+    info_dict["processes"]["command"] = [" ".join(x for x in i['cmdline']) for i in ids]
     
     return info_dict
 
@@ -179,6 +180,7 @@ def base(information_dictionary:dict,
          isp_info_d:dict,
          textual_cpu_info:list,
          textual_proc_info:list,
+         textual_mem_info:list,
          total_ram:float):
     global net_p_in_max
 
@@ -224,7 +226,7 @@ def base(information_dictionary:dict,
             renderable=Panel(credits_info,
                                 border_style="blue bold",
                                 box=box.SQUARE,
-                                title="[dark_green]|Creator Info|",
+                                title="[royal_blue1]|Creator Info|",
                                 title_align="left"),
                                 name="credits")
     )
@@ -330,11 +332,28 @@ def base(information_dictionary:dict,
 
     lay["main-display"]["mem-display"]["graphical-data"].size = 16
     # displaying the texts
-    """lay["main-display"]["mem-display"]["textual-data"].update(
-        Panel(
 
+    # the table that holds all the info regarding the storage space in the disks
+    disks_usage_info_table = Table(border_style="navy_blue", box=box.MINIMAL)
+    disks_usage_info_table.add_column("[blue1]Name")
+    disks_usage_info_table.add_column("[blue1]Available")
+    disks_usage_info_table.add_column("[blue1]Used")
+    disks_usage_info_table.add_column("[blue1]Percent")
+
+    for i in range(len(textual_mem_info[0])):
+        disks_usage_info_table.add_row(f"{textual_mem_info[0][i]}", f"{str(round(float(textual_mem_info[4][i]), ndigits=2)) if textual_mem_info[4][i] != '' else ''} gb", f"{str(round(float(textual_mem_info[5][i]), ndigits=2)) if textual_mem_info[5][i] != '' else ''} gb", f"{textual_mem_info[6][i]}")
+
+    lay["main-display"]["mem-display"]["textual-data"].update(
+        Panel(
+            Group(
+                Panel(
+                    'Names\n'+'\n'.join(i for i in textual_mem_info[0]) + '\n\n'+'Mount Points\n'+'\n'.join(i for i in textual_mem_info[1]),
+                    title="[blue1 underline]Disks", title_align="left", border_style="black"
+                ),
+                disks_usage_info_table
+            ), title="[cyan]|Memory|", title_align="left", border_style="navy_blue"
         )
-    )"""
+    )
 
     # displaying the graphs
     lay["main-display"]["mem-display"]["graphical-data"].update(
@@ -413,6 +432,7 @@ with Live(renderable=base(information_dictionary=basic_info(),
                           isp_info_d=isp_info_g,
                           textual_cpu_info=["", "", 0, [], []],
                           textual_proc_info=[[], [], []],
+                          textual_mem_info=[[""], [""], [""], [""], [""], [""], [""]],
                           total_ram=float(0.0)),
                           refresh_per_second=100,
                           screen=True) as l:
@@ -470,6 +490,11 @@ with Live(renderable=base(information_dictionary=basic_info(),
             _processes_info = processes_info()
             textual_proc_data = [_processes_info["processes"]["ids"], _processes_info["processes"]["names"], _processes_info["processes"]["command"]]
 
+            _ram_info = ram_info()
+            _dsk_info = disks_info()
+
+            textual_mem_data = [_dsk_info["disks"]["names"], _dsk_info["disks"]["mount_points"], _dsk_info["disks"]["options"], _dsk_info["disks"]["usage"]["total_gb"], _dsk_info["disks"]["usage"]["available_gb"], _dsk_info["disks"]["usage"]["used_gb"], _dsk_info["disks"]["usage"]["percentage_used"]]
+
             net_b_in_buffer = truncate_list(net_b_in_buffer, 20)
             net_b_out_buffer = truncate_list(net_b_out_buffer, 20)
             net_p_in_buffer = truncate_list(net_p_in_buffer, 20)
@@ -502,6 +527,7 @@ with Live(renderable=base(information_dictionary=basic_info(),
                         cpu_buff_info=cpu_perc_buffer,
                         textual_cpu_info=textual_cpu_data,
                         textual_proc_info=textual_proc_data,
+                        textual_mem_info=textual_mem_data,
                         isp_info_d=isp_info_g,
                         total_ram=float(total_ram)))
     except KeyboardInterrupt:
