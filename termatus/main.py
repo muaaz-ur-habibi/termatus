@@ -348,11 +348,19 @@ def base(information_dictionary:dict,
     for i in range(len(textual_mem_info[0])):
         disks_usage_info_table.add_row(f"{textual_mem_info[0][i]}", f"{str(round(float(textual_mem_info[4][i]), ndigits=2)) if textual_mem_info[4][i] != '' else ''} gb", f"{str(round(float(textual_mem_info[5][i]), ndigits=2)) if textual_mem_info[5][i] != '' else ''} gb", f"{textual_mem_info[6][i]}")
 
+    disks_names_and_mounts_table = Table(border_style="navy_blue", box=box.MINIMAL)
+    disks_names_and_mounts_table.add_column("[blue1]Name")
+    disks_names_and_mounts_table.add_column("[blue1]Mount Point")
+
+     #'Names\n'+'\n'.join(i for i in textual_mem_info[0]) + '\n\n'+'Mount Points\n'+'\n'.join(i for i in textual_mem_info[1]),
+    for i in range(len(textual_mem_info[0])):
+        disks_names_and_mounts_table.add_row(textual_mem_info[0][i], textual_mem_info[1][i])
+
     lay["main-display"]["mem-display"]["textual-data"].update(
         Panel(
             Group(
                 Panel(
-                    'Names\n'+'\n'.join(i for i in textual_mem_info[0]) + '\n\n'+'Mount Points\n'+'\n'.join(i for i in textual_mem_info[1]),
+                    disks_names_and_mounts_table,
                     title="[blue1 underline]Disks", title_align="left", border_style="black"
                 ),
                 disks_usage_info_table
@@ -368,7 +376,7 @@ def base(information_dictionary:dict,
                 title="[cyan]RAM: Available(gb)", title_align="left", border_style="navy_blue", box=box.SQUARE
             ),
             Panel(
-                acp.plot(memory_ram_info[1], {"min": 0, "height": 5, "max": memory_ram_info[1][-1]+0.4}),
+                acp.plot(memory_ram_info[1], {"min": 0, "height": 5, "max": total_ram/4 + total_ram/4 + total_ram/4}),
                 title="[cyan]RAM: Used(gb)", title_align="left", border_style="navy_blue", box=box.SQUARE
             )
         )
@@ -482,11 +490,6 @@ with Live(renderable=base(information_dictionary=basic_info(),
             ram_used_buffer.append(ram_info()["ram"]["used"])
             ram_perc_buffer.append(ram_info()["ram"]["percentage_used"])
 
-            #disk_totl_buffer.append(disks_info()["disks"]["usage"]["total_gb"])
-            #disk_avai_buffer.append(disks_info()["disks"]["usage"]["available_gb"])
-            #disk_used_buffer.append(disks_info()["disks"]["usage"]["used_gb"])
-            #disk_perc_buffer.append(disks_info()["disks"]["usage"]["percentage_used"])
-
             _cpu_info = cpu_info()
 
             cpu_perc_buffer.append(_cpu_info["cpu"]["stats"]["percent_used"])
@@ -504,23 +507,19 @@ with Live(renderable=base(information_dictionary=basic_info(),
             net_b_out_buffer = truncate_list(net_b_out_buffer, 20)
             net_p_in_buffer = truncate_list(net_p_in_buffer, 20)
             net_p_out_buffer = truncate_list(net_p_out_buffer, 20)
+
             # length of these really dont matter, since they arent going 
             # to be displayed on graphs
-            net_e_in_buffer = truncate_list(net_e_in_buffer, 20)
-            net_e_out_buffer = truncate_list(net_e_out_buffer, 20)
-            net_p_in_loss_buffer = truncate_list(net_p_in_loss_buffer, 20)
-            net_p_out_loss_buffer = truncate_list(net_p_out_loss_buffer, 20)
+            net_e_in_buffer = truncate_list(net_e_in_buffer, 5)
+            net_e_out_buffer = truncate_list(net_e_out_buffer, 5)
+            net_p_in_loss_buffer = truncate_list(net_p_in_loss_buffer, 5)
+            net_p_out_loss_buffer = truncate_list(net_p_out_loss_buffer, 5)
 
 
             ram_avai_buffer = truncate_list(ram_avai_buffer, 40)
             ram_perc_buffer = truncate_list(ram_perc_buffer, 20)
             ram_used_buffer = truncate_list(ram_used_buffer, 40)
             ram_totl_buffer = truncate_list(ram_totl_buffer, 20)
-
-            #disk_avai_buffer = truncate_list(disk_avai_buffer, 20)
-            #disk_perc_buffer = truncate_list(disk_perc_buffer, 20)
-            #disk_totl_buffer = truncate_list(disk_totl_buffer, 20)
-            #disk_used_buffer = truncate_list(disk_used_buffer, 20)
 
             cpu_perc_buffer = truncate_list(cpu_perc_buffer, 50)
 
