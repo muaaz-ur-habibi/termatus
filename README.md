@@ -5,7 +5,7 @@
 <br><br>
 <b>MAJOR DISCLAIMER: </b>this is intended to be used on 1920 x 1080 screens ONLY, anything else and it is bound to break
 <h3>What❓</h3>
-A system information and status viewer, similiar to those you see in the H4CK3R movies. Except this isnt all green on black with random matrix rain
+A system information and status viewer, similiar to those you see in the H4CK3R movies. Except this isnt all green on black with random matrix rain. It actually shows some useful information
 <hr>
 <h3>Why❓</h3>
 I recently had discovered about the amazing Rich library, and was looking for things to make with it. And I just so happened to stumble across bpytop, which was mind-blowing. I know mine does'nt come as close, but I really think for a first project it turned out nice
@@ -22,3 +22,7 @@ I recently had discovered about the amazing Rich library, and was looking for th
   <li>Your disks' memory stats</li>
   <li>Your RAM stats (used, available)</li>
 </ul>
+<hr>
+<h3>OK, so what's special about mine?</h3>
+Well, unlike bpytop which only works on Linux, mine can actually work on Windows as well 😎. But mine still is very very lacking in UI/UX😅<br>
+<hr>
