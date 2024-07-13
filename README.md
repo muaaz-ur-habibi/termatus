@@ -2,7 +2,7 @@
 <h2 align="center">Terminal system status viewer</h2>
 
 <u>Inspired by bpytop</u>
-<br>
+<br><br>
 <b>MAJOR DISCLAIMER: </b>this is intended to be used on 1920 x 1080 screens ONLY, anything else and it is bound to break
 <h3>What❓</h3>
 A system information and status viewer, similiar to those you see in the H4CK3R movies. Except this isnt all green on black with random matrix rain
