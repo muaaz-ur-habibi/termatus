@@ -10,3 +10,19 @@ A system information and status viewer, similiar to those you see in the H4CK3R 
 <h3>Why❓</h3>
 I recently had discovered about the amazing Rich library, and was looking for things to make with it. And I just so happened to stumble across bpytop, which was mind-blowing. I know mine does'nt come as close, but I really think for a first project it turned out nice
 <hr>
+<h3>Cool. What does it show?📈❓</h3>
+<ul>
+  <li>Your basic PC information (OS, System, all that)</li>
+  <li></li>
+  <li>Your CPU information (model, cores, etc.)</li>
+  <li>Your CPU stats (used (%), speeds, time)</li>
+  <li>The current running processes, although not all of it, only 6 to 7</li>
+  <li></li>
+  <li>Your internet information (IP address, your current location etc.)</li>
+  <li>Your internet stats (bytes, packets, loss)</li>
+  <li></li>
+  <li>Your memory a.k.a disks information (names, mount points)</li>
+  <li>Your disks' memory stats</li>
+  <li></li>
+  <li>Your RAM stats (used, available)</li>
+</ul>
