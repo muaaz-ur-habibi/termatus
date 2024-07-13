@@ -1,10 +1,10 @@
 <h1 align="center">Termatus</h1>
-<h3 align="center">Terminal system status viewer</h3>
+<h2 align="center">Terminal system status viewer</h2>
 Inspired by bpytop
 <b>MAJOR DISCLAIMER: </b>this is intended to be used on 1920 x 1080 screens ONLY, anything else and it is bound to break
-<h2>What❓</h2>
+<h3>What❓</h3>
 A system information and status viewer, similiar to those you see in the H4CK3R movies. Except this isnt all green on black with random matrix rain
 <hr>
-<h2>Why❓</h2>
+<h3>Why❓</h3>
 I recently had discovered about the amazing Rich library, and was looking for things to make with it. And I just so happened to stumble across bpytop, which was mind-blowing. I know mine does'nt come as close, but I really think for a first project it turned out nice
 <hr>
