@@ -1,7 +1,7 @@
 <h1 align="center">Termatus</h1>
 <h2 align="center">Terminal system status viewer</h2>
 
-<u align="center">Inspired by bpytop</u>
+<p align="center">Inspired by <a href="https://github.com/aristocratos/bpytop">bpytop</a></p>
 <br><br>
 <b>MAJOR DISCLAIMER: </b>this is intended to be used on 1920 x 1080 screens ONLY, anything else and it is bound to break
 <h3>What❓</h3>
