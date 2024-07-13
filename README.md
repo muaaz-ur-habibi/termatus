@@ -23,6 +23,23 @@ I recently had discovered about the amazing Rich library, and was looking for th
   <li>Your RAM stats (used, available)</li>
 </ul>
 <hr>
-<h3>OK, so what's special about mine?</h3>
+<h3>OK, so what's special about mine❓</h3>
 Well, unlike bpytop which only works on Linux, mine can actually work on Windows as well 😎. But mine still is very very lacking in UI/UX😅<br>
 <hr>
+<h3>How to run❓</h3>
+<p>
+  <b>STEP 0: Install the repo</b><br>
+  -Clone this repo on your machine by
+  
+  ```
+  git clone https://github.com/muaaz-ur-habibi/termatus.git
+  ```
+  -cd into the two termatus folders<br>
+  -Run the command
+
+  ```
+
+  python main.py
+  ```
+  to run the script<br>
+</p>
