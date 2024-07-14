@@ -26,8 +26,6 @@ import platform
 import cpuinfo
 
 
-
-# some custom functions used throughout the app
 def truncate_list(list_:list,
                   length:int):
     """
@@ -39,22 +37,9 @@ def truncate_list(list_:list,
         return list_
     else:
         return list_
-    
-def greater_than(val_1:int, val_2:int):
-    """function that returns val_1 if it is greater than val_2, else returns val_2"""
-    if val_1 > val_2:
-        return val_1
-    else:
-        return val_2
-
-def random_arter():
-    art_list = [v for v in dir(arts) if not v.startswith("__")]
-
-    return random.choice(art_list)
 
 
-
-# main backend function that gets all the required info
+# main backend functions that gets all the required info
 # will iterate over this continously, refreshing the system informations
 def basic_info():
     # basic system info
@@ -202,8 +187,9 @@ def base(information_dictionary:dict,
     lay["acessories-display"].split_row(
         # curr font = big_money-se
         Layout(name="heading-space"),
-        Layout(
-            Align.center(arts.art_8, vertical="middle"), name="pic")
+        Layout(Align(
+            arts.art_13, align="center", vertical="middle"
+        ) ,name="pic")
     )
     lay["acessories-display"]["pic"].size = 70
 
@@ -220,12 +206,12 @@ def base(information_dictionary:dict,
     # credits tree
     credits_info = Tree("[bold white on blue]\nCreated by:[/bold white on blue] Muaaz Khan\n\n[red on white]Socials[/red on white]")
     credits_info.add("[link=https://www.instagram.com/muaaz_ur_habibi?igsh=YzU3YnlxbzN5ZG9k]Instagram")
-    credits_info.add("[link=https://github.com/thegigacoder123]Github")
+    credits_info.add("[link=https://github.com/muaaz-ur-habibi]Github")
 
     lay["acessories-display"]["heading"].split_row(
         Layout(Panel(figlet_format("Ter ma tus",
                              font="colossal",
-                             width=110),
+                             width=100),
                              style="white on black", border_style="black"), name="actual-heading"),
         Layout(
             renderable=Panel(credits_info,
@@ -269,7 +255,7 @@ def base(information_dictionary:dict,
         Layout(name="graphical-data")
     )
 
-    # ignore this. it just cleans the net info
+    # ignore this. it just cleans the isp/textual net info
     backslash_replace = "\n  "
     quote_replace = '"'
     cleaned_net_info = str(isp_info_d['net_info']).replace('{', '').replace('}', '').replace(backslash_replace, '').replace(quote_replace, '').split(',')
@@ -281,7 +267,6 @@ def base(information_dictionary:dict,
             box=box.SQUARE,
             title="[orange bold]|Internet|", title_align="left",
             renderable=Group(
-                #f"[bold underline]General Info:[/bold underline]",
                 Panel(
                     f"\n{cleaned_net_info[0]}\narea: {cleaned_net_info[1].split(': ')[1]}, {cleaned_net_info[2].split(': ')[1]}, {cleaned_net_info[3].split(': ')[1]}\nISP: {cleaned_net_info[6].split(': ')[1]}",
                     border_style="black", title="[purple bold underline]General Info", title_align="left"),
@@ -345,6 +330,7 @@ def base(information_dictionary:dict,
     disks_usage_info_table.add_column("[blue1]Used")
     disks_usage_info_table.add_column("[blue1]Percent")
 
+    # iterate over all the lists of memory and add the data to the table
     for i in range(len(textual_mem_info[0])):
         disks_usage_info_table.add_row(f"{textual_mem_info[0][i]}", f"{str(round(float(textual_mem_info[4][i]), ndigits=2)) if textual_mem_info[4][i] != '' else ''} gb", f"{str(round(float(textual_mem_info[5][i]), ndigits=2)) if textual_mem_info[5][i] != '' else ''} gb", f"{textual_mem_info[6][i]}")
 
@@ -352,10 +338,11 @@ def base(information_dictionary:dict,
     disks_names_and_mounts_table.add_column("[blue1]Name")
     disks_names_and_mounts_table.add_column("[blue1]Mount Point")
 
-     #'Names\n'+'\n'.join(i for i in textual_mem_info[0]) + '\n\n'+'Mount Points\n'+'\n'.join(i for i in textual_mem_info[1]),
+    # iterate over the lists and add the data to table
     for i in range(len(textual_mem_info[0])):
         disks_names_and_mounts_table.add_row(textual_mem_info[0][i], textual_mem_info[1][i])
-
+    
+    # textual data for the memory/ram
     lay["main-display"]["mem-display"]["textual-data"].update(
         Panel(
             Group(
@@ -364,7 +351,7 @@ def base(information_dictionary:dict,
                     title="[blue1 underline]Disks", title_align="left", border_style="black"
                 ),
                 disks_usage_info_table
-            ), title="[cyan]|Memory|", title_align="left", border_style="navy_blue"
+            ), title="[cyan]|Memory|", title_align="left", border_style="navy_blue", box=box.SQUARE
         )
     )
 
@@ -411,17 +398,17 @@ def base(information_dictionary:dict,
         )
     )
 
-    lay["main-display"]["cpu-display"]["graphical-data"].size = 13
+    lay["main-display"]["cpu-display"]["graphical-data"].size = 12
 
     lay["main-display"]["cpu-display"]["graphical-data"].update(
         Panel(
-            acp.plot(cpu_buff_info, {"min": 0, "height": 10, "max": 100}),
+            acp.plot(cpu_buff_info, {"min": 0, "height": 9, "max": 100}),
             border_style="dark_orange", style="yellow", title="[orange_red1]CPU Utilisation (%)", title_align="left", box=box.SQUARE
         )
     )
 
     processes_info_table = Table(box=box.MINIMAL)
-    processes_info_table.add_column("[plum2]I.D", overflow="crop")
+    processes_info_table.add_column("[plum2]Pid", overflow="crop")
     processes_info_table.add_column("[plum2]Name", overflow="crop")
     processes_info_table.add_column("[plum2]Command", overflow="crop")
 
