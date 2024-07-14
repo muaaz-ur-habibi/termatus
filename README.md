@@ -28,7 +28,6 @@ Well, unlike bpytop which only works on Linux, mine can actually work on Windows
 <hr>
 <h3>How to run❓</h3>
 <p>
-  <b>STEP 0: Install the repo</b><br>
   -Clone this repo on your machine by
   
   ```
@@ -38,7 +37,6 @@ Well, unlike bpytop which only works on Linux, mine can actually work on Windows
   -Run the command
 
   ```
-
   python main.py
   ```
   to run the script<br>
