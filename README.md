@@ -28,6 +28,7 @@ I recently had discovered about the amazing Rich library, and was looking for th
   <li>Well, unlike bpytop which only works on Linux, mine can actually work on Windows as well 😎. But mine still is very very lacking in UI/UX😅<br></li>
   <li>I also am a weeb, so you know...</li>
   <li>Mine is also more 'vibrant' I guess</li>
+  <li>You also have a whole lot of ASCII art to choose from to add in the pic display. Plus, you can add your own! Just make sure it fits</li>
 </ol>
 <hr>
 <h3>How to run❓</h3>
@@ -48,4 +49,3 @@ I recently had discovered about the amazing Rich library, and was looking for th
 <h3>How does it look like❓</h3>
 Here's a screenshot:<br>
 <img src="https://github.com/user-attachments/assets/ec70df50-8c17-4f7f-87e7-d5d2b4f0e77c">
-![termatus](https://github.com/user-attachments/assets/ec70df50-8c17-4f7f-87e7-d5d2b4f0e77c)
