@@ -45,3 +45,6 @@ I recently had discovered about the amazing Rich library, and was looking for th
   ```
   to run the script<br>
 </p>
+<h3>How does it look like❓</h3>
+Here's a screenshot:<br>
+![termatus](https://github.com/user-attachments/assets/ec70df50-8c17-4f7f-87e7-d5d2b4f0e77c)
